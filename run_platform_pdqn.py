@@ -42,7 +42,7 @@ def evaluate(env, agent, episodes=1000):
 @click.command()
 @click.option('--seed', default=1, help='Random seed.', type=int)
 @click.option('--evaluation-episodes', default=1000, help='Episodes over which to evaluate after training.', type=int)
-@click.option('--episodes', default=50000, help='Number of epsiodes.', type=int)
+@click.option('--episodes', default=20000, help='Number of epsiodes.', type=int)
 @click.option('--batch-size', default=128, help='Minibatch size.', type=int)
 @click.option('--gamma', default=0.9, help='Discount factor.', type=float)
 @click.option('--inverting-gradients', default=True,
@@ -70,13 +70,12 @@ def evaluate(env, agent, episodes=1000):
 @click.option('--zero-index-gradients', default=False, help="Whether to zero all gradients for action-parameters not corresponding to the chosen action.", type=bool)
 @click.option('--action-input-layer', default=0, help='Which layer to input action parameters.', type=int)
 @click.option('--layers', default='[128,]', help='Duplicate action-parameter inputs.', cls=ClickPythonLiteralOption)
-@click.option('--save-freq', default=10000, help='How often to save models (0 = never).', type=int)
+@click.option('--save-freq', default=0, help='How often to save models (0 = never).', type=int)
 @click.option('--save-dir', default="results/platform", help='Output directory.', type=str)
 @click.option('--render-freq', default=100, help='How often to render / save frames of an episode.', type=int)
 @click.option('--save-frames', default=False, help="Save render frames from the environment. Incompatible with visualise.", type=bool)
-@click.option('--visualise', default=False, help="Render game states. Incompatible with save-frames.", type=bool)
+@click.option('--visualise', default=True, help="Render game states. Incompatible with save-frames.", type=bool)
 @click.option('--title', default="PDDQN", help="Prefix of output files", type=str)
-
 def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradients, initial_memory_threshold,
         replay_memory_size, epsilon_steps, tau_actor, tau_actor_param, use_ornstein_noise, learning_rate_actor,
         learning_rate_actor_param, epsilon_final, zero_index_gradients, initialise_params, scale_actions,
@@ -106,8 +105,8 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
     if scale_actions:
         env = ScaledParameterisedActionWrapper(env)
 
-    dir = os.path.join(save_dir, title)
-    env = Monitor(env, directory=os.path.join(dir, str(seed)), video_callable=False, write_upon_reset=False, force=True)
+    dir = os.path.join(save_dir,title)
+    env = Monitor(env, directory=os.path.join(dir,str(seed)), video_callable=False, write_upon_reset=False, force=True)
     env.seed(seed)
     np.random.seed(seed)
 
@@ -122,7 +121,8 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
         agent_class = SplitPDQNAgent
     elif multipass:
         agent_class = MultiPassPDQNAgent
-    agent = agent_class(env.observation_space.spaces[0], env.action_space,
+    agent = agent_class(
+                       env.observation_space.spaces[0], env.action_space,
                        batch_size=batch_size,
                        learning_rate_actor=learning_rate_actor,
                        learning_rate_actor_param=learning_rate_actor_param,
@@ -164,8 +164,6 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
     # agent.epsilon = 0.
     # agent.noise = None
 
-    log_f = open("log_mpqdn.txt", "w+")
-
     for i in range(episodes):
         if save_freq > 0 and save_dir and i % save_freq == 0:
             agent.save_models(os.path.join(save_dir, str(i)))
@@ -206,14 +204,8 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
 
         returns.append(episode_reward)
         total_reward += episode_reward
-
-        # logger
         if i % 100 == 0:
             print('{0:5s} R:{1:.4f} r100:{2:.4f}'.format(str(i), total_reward / (i + 1), np.array(returns[-100:]).mean()))
-            log_f.write('{},{},{},{}\n'.format(i, episode_reward, total_reward / (i + 1), np.array(returns[-100:]).mean()))
-            log_f.flush()
-
-        
     end_time = time.time()
     print("Took %.2f seconds" % (end_time - start_time))
     env.close()
