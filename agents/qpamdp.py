@@ -75,6 +75,9 @@ class QPAMDPAgent(Agent):
         self.__seed = 0
         self._seed(seed)
 
+        # logger
+        self.log_f = open("../log_qpamdp_GoalEnv.txt", "w+")
+
         # initialise basis for each action-parameter (one per action)
         if self.parameter_obs_index is not None:
             self.basis = []
@@ -269,6 +272,14 @@ class QPAMDPAgent(Agent):
                 returns = np.array(env.get_episode_rewards())
                 print('{0:5s} R:{1:.5f} P(S):{2:.4f}'.format(str(self._total_episodes), sum(returns) / (self._total_episodes),
                                                              (np.array(returns) == 50.).sum() / len(returns)))
+
+                # 4 columns, log format is different that MP-DQN
+                self.log_f.write('{},{},{},{}\n'.format(self._total_episodes,
+                                                sum(returns) / (self._total_episodes),
+                                                np.array(returns[-100:]).mean(),
+                                                (np.array(returns) == 50.).sum() / len(returns)
+                                                ))
+                self.log_f.flush()
 
         return states, actions, rewards, acts
 
