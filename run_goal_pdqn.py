@@ -236,7 +236,8 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
                                                 total_reward / (i + 1),
                                                 (np.array(returns) == 50.).sum() / len(returns)))
 
-            # from left to right: episode number, episode reward, averaged total reward for all past episodes,                        
+            # from left to right: episode number, episode reward, averaged total reward for all past episodes,
+            # returns for nearest 100 episodes and success rates
             log_f.write('{},{},{},{},{}\n'.format(i,
                                                 episode_reward,
                                                 total_reward / (i + 1),
