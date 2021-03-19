@@ -136,6 +136,9 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
     total_reward = 0.
     returns = []
     start_time = time.time()
+
+    log_f = open("log_paddpg_GoalEnv.txt", "w+")
+
     for i in range(episodes):
         state, _ = env.reset()
         state = np.array(state, dtype=np.float32, copy=False)
@@ -170,8 +173,21 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
         returns.append(episode_reward)
         total_reward += episode_reward
         if (i + 1) % 100 == 0:
-            print('{0:5s} R:{1:.5f} P(S):{2:.4f}'.format(str(i + 1), total_reward / (i + 1),
-                                                         (np.array(returns) == 50.).sum() / len(returns)))
+            print('{0:5s} R:{1:.5f} P(S):{2:.4f}'.format(str(i + 1),
+                                                        total_reward / (i + 1),
+                                                        (np.array(returns) == 50.).sum() / len(returns)))
+
+            # from left to right: episode number, episode reward, averaged total reward for all past episodes, 
+            # returns for nearest 100 episodes and success rates
+            log_f.write('{},{},{},{},{}\n'.format(i,
+                                                episode_reward,
+                                                total_reward / (i + 1),
+                                                np.array(returns[-100:]).mean(),
+                                                (np.array(returns) == 50.).sum() / len(returns)
+                                                ))
+
+            log_f.flush()
+
     end_time = time.time()
     print("Took %.2f seconds" % (end_time - start_time))
     env.close()
