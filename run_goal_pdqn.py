@@ -64,7 +64,10 @@ def evaluate(env, agent, episodes=1000):
 @click.option('--initialise-params', default=True, help='Initialise action parameters.', type=bool)
 @click.option('--reward-scale', default=1./50., help="Reward scaling factor.", type=float)
 @click.option('--clip-grad', default=1., help="Parameter gradient clipping limit.", type=float)
-@click.option('--multipass', default=True, help='Separate action-parameter inputs using multiple Q-network passes.', type=bool)
+
+# set this parameter to false when running p-dqn
+@click.option('--multipass', default=False, help='Separate action-parameter inputs using multiple Q-network passes.', type=bool)
+
 @click.option('--indexed', default=False, help='Indexed loss function.', type=bool)
 @click.option('--weighted', default=False, help='Naive weighted loss function.', type=bool)
 @click.option('--average', default=False, help='Average weighted loss function.', type=bool)
@@ -73,11 +76,11 @@ def evaluate(env, agent, episodes=1000):
 @click.option('--zero-index-gradients', default=False, help="Whether to zero all gradients for action-parameters not corresponding to the chosen action.", type=bool)
 @click.option('--layers', default="(256,)", help='Hidden layers.', cls=ClickPythonLiteralOption)
 @click.option('--action-input-layer', default=0, help='Which layer to input action parameters.', type=int)
-@click.option('--save-freq', default=0, help='How often to save models (0 = never).', type=int)
+@click.option('--save-freq', default=5000, help='How often to save models (0 = never).', type=int)
 @click.option('--save-dir', default="results/goal", help='Output directory.', type=str)
 @click.option('--render-freq', default=100, help='How often to render / save frames of an episode.', type=int)
 @click.option('--save-frames', default=False, help="Save render frames from the environment. Incompatible with visualise.", type=bool)
-@click.option('--visualise', default=True, help="Render game states. Incompatible with save-frames.", type=bool)
+@click.option('--visualise', default=False, help="Render game states. Incompatible with save-frames.", type=bool)
 @click.option('--title', default="PDQN", help="Prefix of output files", type=str)
 def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradients, initial_memory_threshold,
         replay_memory_size, epsilon_steps, epsilon_final, tau_actor, tau_actor_param, use_ornstein_noise,
@@ -180,6 +183,9 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
     returns = []
     start_time = time.time()
     video_index = 0
+
+    log_f = open("log_pdqn_GoalEnv.txt", "w+")
+
     for i in range(episodes):
         if save_freq > 0 and save_dir and i % save_freq == 0:
             agent.save_models(os.path.join(save_dir, str(i)))
@@ -221,9 +227,26 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
 
         returns.append(episode_reward)
         total_reward += episode_reward
+
+        # logger
         if (i + 1) % 100 == 0:
-            print('{0:5s} R:{1:.5f} P(S):{2:.4f}'.format(str(i + 1), total_reward / (i + 1),
-                                                         (np.array(returns) == 50.).sum() / len(returns)))
+            # P(S) is the success rate (consider return == 50 as success)
+            print('{0:5s} R:{1:.5f} P(S):{2:.4f}'.format(
+                                                str(i + 1),
+                                                total_reward / (i + 1),
+                                                (np.array(returns) == 50.).sum() / len(returns)))
+
+            # from left to right: episode number, episode reward, averaged total reward for all past episodes,
+            # returns for nearest 100 episodes and success rates
+            log_f.write('{},{},{},{},{}\n'.format(i,
+                                                episode_reward,
+                                                total_reward / (i + 1),
+                                                np.array(returns[-100:]).mean(),
+                                                (np.array(returns) == 50.).sum() / len(returns)
+                                                ))
+
+            log_f.flush()
+
     end_time = time.time()
     print("Training took %.2f seconds" % (end_time - start_time))
     env.close()
