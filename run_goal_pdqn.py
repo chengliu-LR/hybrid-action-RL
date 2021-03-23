@@ -268,6 +268,5 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
         print("Ave. evaluation prob. =", sum(evaluation_returns == 50.) / len(evaluation_returns))
         np.save(os.path.join(dir, title + "{}e".format(str(seed))), evaluation_returns)
 
-for i in range(5):
+if __name__ == "__main__":
     run()
-
