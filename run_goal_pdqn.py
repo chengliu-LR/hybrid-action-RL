@@ -44,7 +44,7 @@ def evaluate(env, agent, episodes=1000):
 @click.command()
 # generate different random seeds for different runs
 @click.option('--seed', default=np.random.randint(low=0, high=100), help='Random seed.', type=int)
-@click.option('--episodes', default=20000, help='Number of epsiodes.', type=int)
+@click.option('--episodes', default=50000, help='Number of epsiodes.', type=int)
 @click.option('--evaluation-episodes', default=1000, help='Episodes over which to evaluate after training.', type=int)
 @click.option('--batch-size', default=128, help='Minibatch size.', type=int)
 @click.option('--gamma', default=0.95, help='Discount factor.', type=float)
@@ -67,7 +67,7 @@ def evaluate(env, agent, episodes=1000):
 @click.option('--clip-grad', default=1., help="Parameter gradient clipping limit.", type=float)
 
 # set this parameter to false when running p-dqn
-@click.option('--multipass', default=True, help='Separate action-parameter inputs using multiple Q-network passes.', type=bool)
+@click.option('--multipass', default=False, help='Separate action-parameter inputs using multiple Q-network passes.', type=bool)
 
 @click.option('--indexed', default=False, help='Indexed loss function.', type=bool)
 @click.option('--weighted', default=False, help='Naive weighted loss function.', type=bool)
@@ -185,7 +185,7 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
     start_time = time.time()
     video_index = 0
 
-    log_f = open("logs/log_pdqn_GoalEnv_seed_{}.txt".format(seed), "w+")
+    log_f = open("logs/log_pdqn_single_GoalEnv_seed_{}.txt".format(seed), "w+")
 
     for i in range(episodes):
         if save_freq > 0 and save_dir and i % save_freq == 0:
