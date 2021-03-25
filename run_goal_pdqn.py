@@ -185,7 +185,7 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
     start_time = time.time()
     video_index = 0
 
-    log_f = open("logs/log_pdqn_single_GoalEnv_seed_{}.txt".format(seed), "w+")
+    log_f = open("logs/log_pdqn_test_GoalEnv_seed_{}.txt".format(seed), "w+")
 
     for i in range(episodes):
         if save_freq > 0 and save_dir and i % save_freq == 0:
@@ -251,6 +251,8 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
     end_time = time.time()
     print("Training took %.2f seconds" % (end_time - start_time))
     env.close()
+    log_meta = open("logs/meta_log_{}.txt".format(seed), "w+")
+    log_meta.write("Training took %.2f seconds\n" % (end_time - start_time))
 
     if save_freq > 0 and save_dir:
         agent.save_models(os.path.join(save_dir, str(i)))
@@ -267,6 +269,8 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
         print("Ave. evaluation return =", sum(evaluation_returns) / len(evaluation_returns))
         print("Ave. evaluation prob. =", sum(evaluation_returns == 50.) / len(evaluation_returns))
         np.save(os.path.join(dir, title + "{}e".format(str(seed))), evaluation_returns)
+        log_meta.write("Ave. evaluation return = {}\n".format(sum(evaluation_returns) / len(evaluation_returns)))
+        log_meta.write("Ave. evaluation prob. = {}\n".format(sum(evaluation_returns == 50.) / len(evaluation_returns)))
 
 if __name__ == "__main__":
     run()
