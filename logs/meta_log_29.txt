@@ -1,0 +1,3 @@
+Training took 2274.88 seconds
+Ave. evaluation return = 37.297640677985925
+Ave. evaluation prob. = 0.79
