@@ -185,7 +185,7 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
     start_time = time.time()
     video_index = 0
 
-    log_f = open("logs/log_pdqn_test_GoalEnv_seed_{}.txt".format(seed), "w+")
+    log_f = open("logs/pdqn_single_GoalEnv_seed{}.txt".format(seed), "w+")
 
     for i in range(episodes):
         if save_freq > 0 and save_dir and i % save_freq == 0:
