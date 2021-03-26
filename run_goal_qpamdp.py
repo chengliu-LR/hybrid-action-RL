@@ -44,8 +44,8 @@ def evaluate(env, agent, episodes=1000):
 
 
 @click.command()
-@click.option('--seed', default=7, help='Random seed.', type=int)
-@click.option('--episodes', default=20000, help='Number of epsiodes.', type=int)
+@click.option('--seed', default=np.random.randint(low=0, high=100), help='Random seed.', type=int)
+@click.option('--episodes', default=50000, help='Number of epsiodes.', type=int)
 @click.option('--evaluation-episodes', default=100, help='Episodes over which to evaluate after training.', type=int)
 @click.option('--scale', default=False, help='Scale inputs and actions.', type=bool)  # default 50, 25 best
 @click.option('--initialise-params', default=True, help='Initialise action parameters.', type=bool)
@@ -106,6 +106,11 @@ def run(seed, episodes, evaluation_episodes, scale, initialise_params, save_dir,
     print("Training took %.2f seconds" % (end_time - start_time))
     env.close()
 
+    # meta-logger for training time and evaluation
+
+    log_meta = open("logs/qpamdp/qpamdp_meta_log_{}.txt".format(seed), "w+")
+    log_meta.write("Training took %.2f seconds\n" % (end_time - start_time))
+
     returns = np.array(env.get_episode_rewards())
     print("Saving training results to:",os.path.join(dir, "QPAMDP{}".format(str(seed))))
     np.save(os.path.join(dir, title + "{}".format(str(seed))), returns)
@@ -124,6 +129,8 @@ def run(seed, episodes, evaluation_episodes, scale, initialise_params, save_dir,
         print("Ave. evaluation return =", sum(evaluation_returns) / len(evaluation_returns))
         print("Ave. evaluation prob. =", sum(evaluation_returns == 50.) / len(evaluation_returns))
         np.save(os.path.join(dir, title + "{}e".format(str(seed))), evaluation_returns)
+        log_meta.write("Ave. evaluation return = {}\n".format(sum(evaluation_returns) / len(evaluation_returns)))
+        log_meta.write("Ave. evaluation prob. = {}\n".format(sum(evaluation_returns == 50.) / len(evaluation_returns)))
 
 
 if __name__ == '__main__':

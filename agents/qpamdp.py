@@ -76,7 +76,7 @@ class QPAMDPAgent(Agent):
         self._seed(seed)
 
         # logger
-        self.log_f = open("../log_qpamdp_GoalEnv.txt", "w+")
+        self.log_f = open("../MP-DQN & H-PPO/logs/qpamdp/log_qpamdp_GoalEnv_seed{}.txt".format(seed), "w+")
 
         # initialise basis for each action-parameter (one per action)
         if self.parameter_obs_index is not None:
